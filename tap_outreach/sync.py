@@ -17,18 +17,6 @@ STEAM_CONFIGS = {
             'updaterId'
         ]
     },
-    'call_dispositions': {
-        'url_path': 'callDispositions',
-        'replication': 'incremental',
-        'filter_field': 'updatedAt',
-        'fks': ['creatorId']
-    },
-    'call_purposes': {
-        'url_path': 'callPurposes',
-        'replication': 'incremental',
-        'filter_field': 'updatedAt',
-        'fks': ['creatorId']
-    },
     'calls': {
         'url_path': 'calls',
         'replication': 'incremental',
@@ -44,16 +32,6 @@ STEAM_CONFIGS = {
             'taskId',
             'userId'
         ]
-    },
-    'content_categories': {
-        'url_path': 'contentCategories',
-        'replication': 'incremental',
-        'filter_field': 'updatedAt',
-        'fks': ['creatorId']
-    },
-    'duties': {
-        'url_path': 'duties',
-        'replication': 'full'
     },
     'events': {
         'url_path': 'events',
@@ -117,33 +95,6 @@ STEAM_CONFIGS = {
         'url_path': 'stages',
         'replication': 'incremental',
         'filter_field': 'updatedAt',
-        'fks': ['creatorId', 'updaterId']
-    },
-    'tasks': {
-        'url_path': 'tasks',
-        'replication': 'incremental',
-        'filter_field': 'updatedAt',
-        'fks': [
-            'accountId',
-            'callId',
-            'completerId',
-            'creatorId',
-            'mailingId',
-            'opportunityId',
-            'ownerId',
-            'prospectId',
-            'sequenceId',
-            'sequenceStateId',
-            'sequenceStepId',
-            'subjectId',
-            'taskPriorityId',
-            'taskThemeId',
-            'templateId'
-        ]
-    },
-    'teams': {
-        'url_path': 'teams',
-        'replication': 'full',
         'fks': ['creatorId', 'updaterId']
     },
     'users': {
@@ -288,8 +239,20 @@ def sync(client, catalog, state, start_date):
     selected_streams = sorted(selected_streams, key=lambda x: x.tap_stream_id)
 
     for stream in selected_streams:
-        mdata = metadata.to_map(stream.metadata)
-        update_current_stream(state, stream.tap_stream_id)
-        sync_endpoint(client, catalog, state, start_date, stream, mdata)
+        if stream.tap_stream_id in [
+            "accounts",
+            "prospects",
+            "events",
+            "calls",
+            "users",
+            "stages",
+            "personas",
+            "opportunities",
+            "mailings",
+            "mailboxes"
+        ]:
+            mdata = metadata.to_map(stream.metadata)
+            update_current_stream(state, stream.tap_stream_id)
+            sync_endpoint(client, catalog, state, start_date, stream, mdata)
 
     update_current_stream(state)
