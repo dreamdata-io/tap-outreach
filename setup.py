@@ -10,7 +10,12 @@ setup(
     url="https://singer.io",
     classifiers=["Programming Language :: Python :: 3 :: Only"],
     py_modules=["tap_outreach"],
-    install_requires=["backoff==1.8.0", "requests==2.22.0", "singer-python==5.8.1"],
+    install_requires=[
+        "backoff==1.8.0",
+        "requests==2.22.0",
+        "singer-python==5.8.1",
+        "ratelimit==2.2.1",
+    ],
     entry_points="""
           [console_scripts]
           tap-outreach=tap_outreach:main
