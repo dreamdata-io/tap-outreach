@@ -62,8 +62,9 @@ class OutreachClient(object):
 
     @backoff.on_exception(backoff.expo,
                           (Server5xxError, RateLimitError, ConnectionError),
-                          max_tries=5,
+                          max_tries=10,
                           factor=3)
+    @ratelimit.limits(calls=10000, period=3600, raise_on_limit=False)
     def request(self, method, path=None, url=None, skip_quota=False, **kwargs):
         if url is None and \
             (self.__access_token is None or \
@@ -90,14 +91,6 @@ class OutreachClient(object):
         with metrics.http_request_timer(endpoint) as timer:
             response = self.__session.request(method, url, **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
-
-        if response.status_code >= 500:
-            raise Server5xxError()
-
-        if response.status_code == 429:
-            LOGGER.warn('Rate limit hit - 429')
-            self.sleep_for_reset_period(response)
-            raise RateLimitError()
 
         response.raise_for_status()
 
