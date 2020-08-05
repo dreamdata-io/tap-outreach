@@ -185,6 +185,9 @@ def sync_endpoint(client, catalog, state, start_date, stream, mdata):
     has_more = True
     max_modified = last_datetime
     paginate_datetime = last_datetime
+    LOGGER.info(
+        "{} - Syncing data since {}".format(stream.tap_stream_id, last_datetime)
+    )
     while has_more:
         query_params = {"page[limit]": count, "page[offset]": offset}
 
@@ -231,6 +234,7 @@ def sync(client, catalog, state, start_date):
     selected_streams = sorted(selected_streams, key=lambda x: x.tap_stream_id)
 
     for stream in selected_streams:
+        try:
             if stream.tap_stream_id in [
                 "accounts",
                 "prospects",
@@ -246,5 +250,8 @@ def sync(client, catalog, state, start_date):
                 mdata = metadata.to_map(stream.metadata)
                 update_current_stream(state, stream.tap_stream_id)
                 sync_endpoint(client, catalog, state, start_date, stream, mdata)
+        except:
+            update_current_stream(state)
+            continue
 
     update_current_stream(state)
