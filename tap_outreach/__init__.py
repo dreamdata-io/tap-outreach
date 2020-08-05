@@ -14,26 +14,26 @@ from tap_outreach.sync import sync
 LOGGER = singer.get_logger()
 
 REQUIRED_CONFIG_KEYS = [
-    'start_date',
-    'client_id',
-    'client_secret',
-    'redirect_uri',
-    'refresh_token'
+    "start_date",
+    "client_id",
+    "client_secret",
+    "redirect_uri",
+    "refresh_token",
 ]
 
-def do_discover(client):
-    LOGGER.info('Testing authentication')
-    try:
-        client.get(
-            'stages',
-            endpoint='stages')
-    except:
-        raise Exception('Error testing Outreach authentication')
 
-    LOGGER.info('Starting discover')
+def do_discover(client):
+    LOGGER.info("Testing authentication")
+    try:
+        client.get("stages", endpoint="stages")
+    except:
+        raise Exception("Error testing Outreach authentication")
+
+    LOGGER.info("Starting discover")
     catalog = discover()
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
-    LOGGER.info('Finished discover')
+    LOGGER.info("Finished discover")
+
 
 @singer.utils.handle_top_exception(LOGGER)
 def main():
@@ -43,7 +43,9 @@ def main():
         if parsed_args.discover:
             do_discover(client)
         else:
-            sync(client,
-                 parsed_args.catalog,
-                 parsed_args.state,
-                 parsed_args.config['start_date'])
+            sync(
+                client,
+                parsed_args.catalog,
+                parsed_args.state,
+                parsed_args.config["start_date"],
+            )
