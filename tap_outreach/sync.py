@@ -101,29 +101,29 @@ STEAM_CONFIGS = {
             "updaterId",
         ],
     },
-    'sequences': {
-        'url_path': 'sequences',
-        'replication': 'incremental',
-        'filter_field': 'updatedAt',
-        'fks': ['creatorId', 'ownerid', 'updaterId']
+    "sequences": {
+        "url_path": "sequences",
+        "replication": "incremental",
+        "filter_field": "updatedAt",
+        "fks": ["creatorId", "ownerid", "updaterId"],
     },
-    'sequence_states': {
-        'url_path': 'sequenceStates',
-        'replication': 'incremental',
-        'filter_field': 'updatedAt',
-        'fks': ['accountid', 'creatorId', 'prospectId', 'sequenceId']
+    "sequence_states": {
+        "url_path": "sequenceStates",
+        "replication": "incremental",
+        "filter_field": "updatedAt",
+        "fks": ["accountid", "creatorId", "prospectId", "sequenceId"],
     },
-    'sequence_steps': {
-        'url_path': 'sequenceSteps',
-        'replication': 'incremental',
-        'filter_field': 'updatedAt',
-        'fks': ['creatorId', 'sequenceId', 'updaterId']
+    "sequence_steps": {
+        "url_path": "sequenceSteps",
+        "replication": "incremental",
+        "filter_field": "updatedAt",
+        "fks": ["creatorId", "sequenceId", "updaterId"],
     },
-    'sequence_templates': {
-        'url_path': 'sequenceTemplates',
-        'replication': 'full',
-        'filter_field': 'updatedAt',
-        'fks': ['creatorId', 'updaterId']
+    "sequence_templates": {
+        "url_path": "sequenceTemplates",
+        "replication": "full",
+        "filter_field": "updatedAt",
+        "fks": ["creatorId", "updaterId"],
     },
 }
 
@@ -269,10 +269,10 @@ def sync(client, catalog, state, start_date):
                 "opportunities",
                 "mailings",
                 "mailboxes",
-                'sequences',
-                'sequence_states',
-                'sequence_steps',
-                'sequence_templates'
+                "sequences",
+                "sequence_states",
+                "sequence_steps",
+                "sequence_templates",
             ]:
                 mdata = metadata.to_map(stream.metadata)
                 update_current_stream(state, stream.tap_stream_id)
