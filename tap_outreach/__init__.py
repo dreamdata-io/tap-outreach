@@ -26,6 +26,8 @@ def do_discover(client):
     LOGGER.info("Testing authentication")
     try:
         client.get("stages", endpoint="stages")
+    except KeyboardInterrupt:
+        raise
     except:
         raise Exception("Error testing Outreach authentication")
 
