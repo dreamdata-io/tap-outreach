@@ -276,8 +276,7 @@ def sync(client, catalog, state, start_date):
             ]:
                 mdata = metadata.to_map(stream.metadata)
                 update_current_stream(state, stream.tap_stream_id)
-                sync_endpoint(client, catalog, state,
-                              start_date, stream, mdata)
+                sync_endpoint(client, catalog, state, start_date, stream, mdata)
         except KeyboardInterrupt:
             raise
         except:
