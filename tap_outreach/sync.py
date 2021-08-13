@@ -217,7 +217,7 @@ def sync_endpoint(client, catalog, state, start_date, stream, mdata):
 
         if stream_config.get("replication") == "incremental":
             query_params["filter[{}]".format(filter_field)] = "{}..inf".format(
-                paginate_datetime.strftime("%Y-%m-%dT%H-%M-%S")
+                paginate_datetime
             )
             query_params["sort"] = filter_field
 
