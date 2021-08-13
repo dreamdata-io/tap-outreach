@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
 import sys
 import json
 import argparse
+import pytz
 
 import singer
 from singer import metadata
@@ -45,9 +47,31 @@ def main():
         if parsed_args.discover:
             do_discover(client)
         else:
+            # This is a compatability conversion to fix an issue with how we
+            # generate config files for taps.
+            # Basically, we store a "UTC timestamp" called `tapped_at` in
+            # datastore, which is in the (assumed) default Python format
+            # instead of the much more common ISO 8601 format.
+            #
+            # This issue only occurs when the tap is not run with a state file,
+            # since state file bookmarks are actually in the correct ISO 8601
+            # format due to the tap actually writing results from the API as
+            # state. I'm guessing this is why no one has experienced this bug.
+            #
+            # This might very well break, but in that case at least it's going
+            # to blow up so we can actually detect it.
+            start_date = (
+                datetime.strptime(
+                    parsed_args.config["start_date"],
+                    "%Y-%m-%dT%H:%M:%S.%f",
+                )
+                .astimezone(pytz.UTC)
+                .strftime("%Y-%m-%dT%H:%M:%SZ")
+            )
+
             sync(
                 client,
                 parsed_args.catalog,
                 parsed_args.state,
-                parsed_args.config["start_date"],
+                start_date,
             )
