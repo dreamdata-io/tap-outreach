@@ -44,7 +44,7 @@ class OutreachClient(object):
 
     def refresh(self):
         try:
-            data = self.request(
+            data = self._request(
                 "POST",
                 url="https://api.outreach.io/oauth/token",
                 skip_quota=True,
@@ -55,7 +55,7 @@ class OutreachClient(object):
                     "refresh_token": self.__refresh_token,
                     "grant_type": "refresh_token",
                 },
-            )
+            ).json()
 
             self.__access_token = data["access_token"]
 
@@ -93,12 +93,13 @@ class OutreachClient(object):
         factor=3,
     )
     @ratelimit.limits(calls=10000, period=3600, raise_on_limit=False)
-    def request(self, method, path=None, url=None, skip_quota=False, **kwargs):
-        if url is None and (
-            self.__access_token is None or self.__expires_at <= datetime.utcnow()
-        ):
+    def request(self, *args, **kwargs):
+        if self.__access_token is None or self.__expires_at <= datetime.utcnow():
             self.refresh()
 
+        return self._request(*args, **kwargs).json()
+
+    def _request(self, method, path=None, url=None, skip_quota=False, **kwargs):
         if url is None and path:
             url = "{}{}".format(self.BASE_URL, path)
 
@@ -133,7 +134,7 @@ class OutreachClient(object):
                 )
                 self.sleep_for_reset_period(response)
 
-        return response.json()
+        return response
 
     def get(self, path, **kwargs):
         return self.request("GET", path=path, **kwargs)
