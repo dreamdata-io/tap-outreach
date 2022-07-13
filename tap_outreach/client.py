@@ -18,6 +18,9 @@ class Server5xxError(Exception):
 class RateLimitError(Exception):
     pass
 
+class InvalidCredentialsError(Exception):
+    pass
+
 
 class OutreachClient(object):
     BASE_URL = "https://api.outreach.io/api/v2/"
@@ -40,24 +43,33 @@ class OutreachClient(object):
         self.__session.close()
 
     def refresh(self):
-        data = self.request(
-            "POST",
-            url="https://api.outreach.io/oauth/token",
-            skip_quota=True,
-            data={
-                "client_id": self.__client_id,
-                "client_secret": self.__client_secret,
-                "redirect_uri": self.__redirect_uri,
-                "refresh_token": self.__refresh_token,
-                "grant_type": "refresh_token",
-            },
-        )
+        try:
+            data = self.request(
+                "POST",
+                url="https://api.outreach.io/oauth/token",
+                skip_quota=True,
+                data={
+                    "client_id": self.__client_id,
+                    "client_secret": self.__client_secret,
+                    "redirect_uri": self.__redirect_uri,
+                    "refresh_token": self.__refresh_token,
+                    "grant_type": "refresh_token",
+                },
+            )
 
-        self.__access_token = data["access_token"]
+            self.__access_token = data["access_token"]
 
-        self.__expires_at = datetime.utcnow() + timedelta(
-            seconds=data["expires_in"] - 10
-        )  # pad by 10 seconds for clock drift
+            self.__expires_at = datetime.utcnow() + timedelta(
+                seconds=data["expires_in"] - 10
+            )  # pad by 10 seconds for clock drift
+        except requests.exceptions.HTTPError as ex:
+            data = ex.response.json()
+            error = data.get("error")
+
+            if error == "invalid_grant":
+                raise InvalidCredentialsError from ex
+
+            raise ex
 
     def sleep_for_reset_period(self, response):
         reset = datetime.fromtimestamp(int(response.headers["x-ratelimit-reset"]))
