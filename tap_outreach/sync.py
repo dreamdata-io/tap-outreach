@@ -283,7 +283,8 @@ def sync(client, catalog, state, start_date):
         except InvalidCredentialsError:
             update_current_stream(state)
             raise
-        except:
+        except Exception as ex:
+            LOGGER.exceptionex("an unknown error occured", exc_info=ex)
             update_current_stream(state)
             continue
 
