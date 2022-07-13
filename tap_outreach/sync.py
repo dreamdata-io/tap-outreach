@@ -2,6 +2,7 @@ import singer
 from singer import metrics, metadata, Transformer
 from singer.bookmarks import set_currently_syncing
 
+from tap_outreach.client import InvalidCredentialsError
 from tap_outreach.discover import discover
 
 LOGGER = singer.get_logger()
@@ -278,6 +279,9 @@ def sync(client, catalog, state, start_date):
                 update_current_stream(state, stream.tap_stream_id)
                 sync_endpoint(client, catalog, state, start_date, stream, mdata)
         except KeyboardInterrupt:
+            raise
+        except InvalidCredentialsError:
+            update_current_stream(state)
             raise
         except:
             update_current_stream(state)
