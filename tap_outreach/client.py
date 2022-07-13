@@ -81,24 +81,6 @@ class OutreachClient(object):
         )
         time.sleep(sleep_time)
 
-    @backoff.on_exception(
-        backoff.expo,
-        (
-            Server5xxError,
-            RateLimitError,
-            ConnectionError,
-            requests.exceptions.HTTPError,
-        ),
-        max_tries=10,
-        factor=3,
-    )
-    @ratelimit.limits(calls=10000, period=3600, raise_on_limit=False)
-    def request(self, *args, **kwargs):
-        if self.__access_token is None or self.__expires_at <= datetime.utcnow():
-            self.refresh()
-
-        return self._request(*args, **kwargs).json()
-
     def _request(self, method, path=None, url=None, skip_quota=False, **kwargs):
         if url is None and path:
             url = "{}{}".format(self.BASE_URL, path)
@@ -136,5 +118,20 @@ class OutreachClient(object):
 
         return response
 
+    @backoff.on_exception(
+        backoff.expo,
+        (
+            Server5xxError,
+            RateLimitError,
+            ConnectionError,
+            requests.exceptions.HTTPError,
+        ),
+        max_tries=10,
+        factor=3,
+    )
+    @ratelimit.limits(calls=10000, period=3600, raise_on_limit=False)
     def get(self, path, **kwargs):
-        return self.request("GET", path=path, **kwargs)
+        if self.__access_token is None or self.__expires_at <= datetime.utcnow():
+            self.refresh()
+
+        return self._request("GET", path=path, **kwargs).json()
