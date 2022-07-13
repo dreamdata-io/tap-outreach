@@ -11,13 +11,6 @@ from requests.exceptions import ConnectionError
 LOGGER = singer.get_logger()
 
 
-class Server5xxError(Exception):
-    pass
-
-
-class RateLimitError(Exception):
-    pass
-
 class InvalidCredentialsError(Exception):
     pass
 
@@ -121,8 +114,6 @@ class OutreachClient(object):
     @backoff.on_exception(
         backoff.expo,
         (
-            Server5xxError,
-            RateLimitError,
             ConnectionError,
             requests.exceptions.HTTPError,
         ),
