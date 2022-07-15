@@ -74,7 +74,7 @@ class OutreachClient(object):
         )
         time.sleep(sleep_time)
 
-    def _request(self, method, path=None, url=None, skip_quota=False, **kwargs):
+    def _request(self, method, path=None, url=None, skip_quota=False, **kwargs) -> requests.Request:
         if url is None and path:
             url = "{}{}".format(self.BASE_URL, path)
 
