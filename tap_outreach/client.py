@@ -11,11 +11,7 @@ from requests.exceptions import ConnectionError
 LOGGER = singer.get_logger()
 
 
-class Server5xxError(Exception):
-    pass
-
-
-class RateLimitError(Exception):
+class InvalidCredentialsError(Exception):
     pass
 
 
@@ -40,24 +36,33 @@ class OutreachClient(object):
         self.__session.close()
 
     def refresh(self):
-        data = self.request(
-            "POST",
-            url="https://api.outreach.io/oauth/token",
-            skip_quota=True,
-            data={
-                "client_id": self.__client_id,
-                "client_secret": self.__client_secret,
-                "redirect_uri": self.__redirect_uri,
-                "refresh_token": self.__refresh_token,
-                "grant_type": "refresh_token",
-            },
-        )
+        try:
+            data = self._request(
+                "POST",
+                url="https://api.outreach.io/oauth/token",
+                skip_quota=True,
+                data={
+                    "client_id": self.__client_id,
+                    "client_secret": self.__client_secret,
+                    "redirect_uri": self.__redirect_uri,
+                    "refresh_token": self.__refresh_token,
+                    "grant_type": "refresh_token",
+                },
+            ).json()
 
-        self.__access_token = data["access_token"]
+            self.__access_token = data["access_token"]
 
-        self.__expires_at = datetime.utcnow() + timedelta(
-            seconds=data["expires_in"] - 10
-        )  # pad by 10 seconds for clock drift
+            self.__expires_at = datetime.utcnow() + timedelta(
+                seconds=data["expires_in"] - 10
+            )  # pad by 10 seconds for clock drift
+        except requests.exceptions.HTTPError as ex:
+            data = ex.response.json()
+            error = data.get("error")
+
+            if error == "invalid_grant":
+                raise InvalidCredentialsError from ex
+
+            raise ex
 
     def sleep_for_reset_period(self, response):
         reset = datetime.fromtimestamp(int(response.headers["x-ratelimit-reset"]))
@@ -69,24 +74,7 @@ class OutreachClient(object):
         )
         time.sleep(sleep_time)
 
-    @backoff.on_exception(
-        backoff.expo,
-        (
-            Server5xxError,
-            RateLimitError,
-            ConnectionError,
-            requests.exceptions.HTTPError,
-        ),
-        max_tries=10,
-        factor=3,
-    )
-    @ratelimit.limits(calls=10000, period=3600, raise_on_limit=False)
-    def request(self, method, path=None, url=None, skip_quota=False, **kwargs):
-        if url is None and (
-            self.__access_token is None or self.__expires_at <= datetime.utcnow()
-        ):
-            self.refresh()
-
+    def _request(self, method, path=None, url=None, skip_quota=False, **kwargs) -> requests.Request:
         if url is None and path:
             url = "{}{}".format(self.BASE_URL, path)
 
@@ -121,7 +109,20 @@ class OutreachClient(object):
                 )
                 self.sleep_for_reset_period(response)
 
-        return response.json()
+        return response
 
+    @backoff.on_exception(
+        backoff.expo,
+        (
+            ConnectionError,
+            requests.exceptions.HTTPError,
+        ),
+        max_tries=10,
+        factor=3,
+    )
+    @ratelimit.limits(calls=10000, period=3600, raise_on_limit=False)
     def get(self, path, **kwargs):
-        return self.request("GET", path=path, **kwargs)
+        if self.__access_token is None or self.__expires_at <= datetime.utcnow():
+            self.refresh()
+
+        return self._request("GET", path=path, **kwargs).json()

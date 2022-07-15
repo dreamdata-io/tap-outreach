@@ -9,7 +9,7 @@ import pytz
 import singer
 from singer import metadata
 
-from tap_outreach.client import OutreachClient
+from tap_outreach.client import InvalidCredentialsError, OutreachClient
 from tap_outreach.discover import discover
 from tap_outreach.sync import sync
 
@@ -69,9 +69,13 @@ def main():
                 .strftime("%Y-%m-%dT%H:%M:%SZ")
             )
 
-            sync(
-                client,
-                parsed_args.catalog,
-                parsed_args.state,
-                start_date,
-            )
+            try:
+                sync(
+                    client,
+                    parsed_args.catalog,
+                    parsed_args.state,
+                    start_date,
+                )
+            except InvalidCredentialsError:
+                LOGGER.warn("credentials are invalid, a re-integration is required")
+                sys.exit(4)
