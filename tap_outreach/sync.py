@@ -284,7 +284,7 @@ def sync(client, catalog, state, start_date):
             update_current_stream(state)
             raise
         except Exception as ex:
-            LOGGER.exceptionex("an unknown error occured", exc_info=ex)
+            LOGGER.exception("an unknown error occured", exc_info=ex)
             update_current_stream(state)
             continue
 
