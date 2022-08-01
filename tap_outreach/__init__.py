@@ -9,7 +9,11 @@ import pytz
 import singer
 from singer import metadata
 
-from tap_outreach.client import InvalidCredentialsError, OutreachClient
+from tap_outreach.client import (
+    InvalidCredentialsError,
+    UserNotActiveError,
+    OutreachClient,
+)
 from tap_outreach.discover import discover
 from tap_outreach.sync import sync
 
@@ -78,4 +82,7 @@ def main():
                 )
             except InvalidCredentialsError:
                 LOGGER.warn("credentials are invalid, a re-integration is required")
+                sys.exit(4)
+            except UserNotActiveError:
+                LOGGER.warn("user is not active, customer needs to activate it")
                 sys.exit(4)
