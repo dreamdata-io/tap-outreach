@@ -62,7 +62,7 @@ class OutreachClient(object):
             if error == "invalid_grant":
                 raise InvalidCredentialsError from ex
 
-            raise Exception(f"refresh failed, response='{ex.response}'")
+            raise Exception(f"refresh failed, response='{data}'")
 
     def sleep_for_reset_period(self, response):
         reset = datetime.fromtimestamp(int(response.headers["x-ratelimit-reset"]))
