@@ -205,7 +205,7 @@ def sync_endpoint(client, catalog, state, start_date, stream, mdata):
     filter_field = stream_config.get("filter_field")
     fks = stream_config.get("fks", [])
 
-    count = 1000
+    count = 100
     offset = 0
     has_more = True
     max_modified = last_datetime
