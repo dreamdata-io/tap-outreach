@@ -15,6 +15,10 @@ class InvalidCredentialsError(Exception):
     pass
 
 
+class UserNotActiveError(Exception):
+    pass
+
+
 class OutreachClient(object):
     BASE_URL = "https://api.outreach.io/api/v2/"
 
@@ -61,6 +65,9 @@ class OutreachClient(object):
 
             if error == "invalid_grant":
                 raise InvalidCredentialsError from ex
+
+            if error == "User is not active":
+                raise UserNotActiveError from ex
 
             raise Exception(f"refresh failed, response='{data}'")
 
