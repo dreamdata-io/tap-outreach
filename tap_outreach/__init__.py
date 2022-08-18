@@ -82,7 +82,7 @@ def main():
                 )
             except InvalidCredentialsError:
                 LOGGER.warn("credentials are invalid, a re-integration is required")
-                sys.exit(5)
+                sys.exit(4)
             except UserNotActiveError:
                 LOGGER.warn("user is not active, customer needs to activate it")
-                sys.exit(5)
+                sys.exit(4)
