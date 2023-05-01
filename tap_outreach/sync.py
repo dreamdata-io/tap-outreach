@@ -262,7 +262,6 @@ def sync(client, catalog, state, start_date):
             if stream.tap_stream_id in [
                 "accounts",
                 "prospects",
-                "events",
                 "calls",
                 "users",
                 "stages",
@@ -271,9 +270,6 @@ def sync(client, catalog, state, start_date):
                 "mailings",
                 "mailboxes",
                 "sequences",
-                "sequence_states",
-                "sequence_steps",
-                "sequence_templates",
             ]:
                 mdata = metadata.to_map(stream.metadata)
                 update_current_stream(state, stream.tap_stream_id)
