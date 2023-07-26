@@ -258,11 +258,8 @@ def sync(client, catalog, state, start_date):
                 "prospects",
                 "calls",
                 "users",
-                "stages",
                 "personas",
-                "opportunities",
                 "mailings",
-                "mailboxes",
                 "sequences",
             ]:
                 mdata = metadata.to_map(stream.metadata)
