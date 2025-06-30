@@ -149,42 +149,10 @@ def process_records(stream, mdata, max_modified, records, filter_field, fks):
     schema = stream.schema.to_dict()
     with metrics.record_counter(stream.tap_stream_id) as counter:
         for record in records:
-            record_flat = {"id": record["id"]}
-            for prop, value in record["attributes"].items():
-                if prop == "id":
-                    raise Exception(
-                        "Error flattening Outeach record - conflict with `id` key"
-                    )
-                record_flat[prop] = value
-
-            if "relationships" in record:
-                for prop, value in record["relationships"].items():
-                    if "data" not in value and "links" not in value:
-                        raise Exception(
-                            "Only `data` or `links` expected in relationships"
-                        )
-
-                    fk_field_name = "{}Id".format(prop)
-
-                    if "data" in value and fk_field_name in fks:
-                        data_value = value["data"]
-                        if data_value is not None and "id" not in data_value:
-                            raise Exception(
-                                "null or `id` field expected for `data` relationship"
-                            )
-        
-
-                        if data_value == None:
-                            record_flat[fk_field_name] = None
-                        else:
-                            record_flat[fk_field_name] = data_value["id"]
-
-            if filter_field in record_flat and record_flat[filter_field] > max_modified:
-                max_modified = record_flat[filter_field]
-
-            with Transformer() as transformer:
-                record_typed = transformer.transform(record_flat, schema, mdata)
-            singer.write_record(stream.tap_stream_id, record_typed)
+            attributes = record["attributes"]
+            if filter_field in attributes and attributes[filter_field] > max_modified:
+                max_modified = attributes[filter_field]
+            singer.write_record(stream.tap_stream_id, record)
             counter.increment()
         return max_modified
 
